@@ -81,7 +81,7 @@
       resizeCanvas();
     })();
     resizeCanvas();
-    
+
     window.addEventListener("load", function () {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("ServiceWorker.js");
@@ -124,7 +124,7 @@
       productName: "GameDemo",
       productVersion: "1.0",
       showBanner: unityShowBanner,
-       //matchWebGLToCanvasSize: false
+      matchWebGLToCanvasSize: false
     };
 
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
