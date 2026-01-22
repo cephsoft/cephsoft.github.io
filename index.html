@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="TemplateData/style.css">
     <link rel="manifest" href="manifest.webmanifest">
 
-    <!-- ✅ Aspect-ratio lock -->
     <style>
       html, body {
         margin: 0;
@@ -27,27 +26,23 @@
       }
 
       #unity-container {
-        width: 100vw;
-        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
       }
 
+
       #unity-canvas {
-        aspect-ratio: 16 / 9;
-        width: 100%;
-        height: auto;
-        max-width: calc(100vh * (16 / 9));
-        max-height: 100vh;
+        width: 1280px;
+        height: 720px;
         background: black;
       }
+
     </style>
   </head>
 
   <body>
     <div id="unity-container">
-      <!-- ❗ width/height attributes removed on purpose -->
       <canvas id="unity-canvas" tabindex="-1"></canvas>
 
       <div id="unity-loading-bar">
