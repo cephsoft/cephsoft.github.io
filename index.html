@@ -34,6 +34,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="unity-container">
     <canvas id="unity-canvas" width="768" height="432" tabindex="-1"></canvas>
@@ -138,6 +139,7 @@
     var script = document.createElement("script");
     script.src = loaderUrl;
     script.onload = () => {
+      resizeCanvas();
       createUnityInstance(canvas, config, (progress) => {
         progressBarFull.style.width = 100 * progress + "%";
       }).then((unityInstance) => {
