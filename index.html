@@ -1,125 +1,158 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | GameDemo</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <link rel="manifest" href="manifest.webmanifest">
-  </head>
-  <body>
-    <div id="unity-container" style="position:relative; width:100%; height:100%; background-color:black;">
-      <canvas id="unity-canvas" width="768" height="432" tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Unity Web Player | GameDemo</title>
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: black; /* Black for letterbox/pillarbox bars */
+      overflow: hidden;
+    }
+
+    #unity-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: black; /* Black background */
+      overflow: hidden;
+    }
+
+    #unity-canvas {
+      display: block;
+      background-color: transparent; /* Let container background show */
+    }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" width="768" height="432" tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
       </div>
-      <div id="unity-warning"></div>
     </div>
+    <div id="unity-warning"></div>
+  </div>
 
-    <script>
-      // Service Worker registration
-      window.addEventListener("load", function () {
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.register("ServiceWorker.js");
-        }
+  <script>
+    // Service worker registration
+    window.addEventListener("load", function () {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("ServiceWorker.js");
+      }
+    });
+
+    // Unity DOM elements
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+    var warningBanner = document.querySelector("#unity-warning");
+
+    // Warning/error banner function
+    function unityShowBanner(msg, type) {
+      function updateBannerVisibility() {
+        warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+      }
+      var div = document.createElement('div');
+      div.innerHTML = msg;
+      warningBanner.appendChild(div);
+      if (type == 'error') div.style = 'background: red; padding: 10px;';
+      else {
+        if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+        setTimeout(function() {
+          warningBanner.removeChild(div);
+          updateBannerVisibility();
+        }, 5000);
+      }
+      updateBannerVisibility();
+    }
+
+    // Unity loader configuration
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/Web.loader.js";
+    var config = {
+      arguments: [],
+      dataUrl: buildUrl + "/Web.data",
+      frameworkUrl: buildUrl + "/Web.framework.js",
+      codeUrl: buildUrl + "/Web.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "CephSoft",
+      productName: "GameDemo",
+      productVersion: "1.0",
+      showBanner: unityShowBanner,
+    };
+
+    // Mobile viewport fix
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+    }
+
+    // Show loading bar
+    loadingBar.style.display = "block";
+
+    // Load Unity WebGL loader
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+        progressBarFull.style.width = 100 * progress + "%";
+      }).then((unityInstance) => {
+        loadingBar.style.display = "none";
+      }).catch((message) => {
+        alert(message);
       });
+    };
+    document.body.appendChild(script);
 
-      // Unity variables
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var warningBanner = document.querySelector("#unity-warning");
+    // === Canvas Resize & Letterboxing Fix (Cross-Browser) ===
+    (function() {
+      const targetAspect = 16 / 9; // Set your target aspect ratio here
+      const canvas = document.getElementById("unity-canvas");
 
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+      function resizeCanvas() {
+        const windowAspect = window.innerWidth / window.innerHeight;
+        let canvasWidth, canvasHeight;
+
+        if (windowAspect > targetAspect) {
+          // Pillarbox
+          canvasHeight = window.innerHeight;
+          canvasWidth = canvasHeight * targetAspect;
+        } else {
+          // Letterbox
+          canvasWidth = window.innerWidth;
+          canvasHeight = canvasWidth / targetAspect;
         }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
+
+        // CSS visual size
+        canvas.style.width = canvasWidth + "px";
+        canvas.style.height = canvasHeight + "px";
+        canvas.style.marginLeft = ((window.innerWidth - canvasWidth) / 2) + "px";
+        canvas.style.marginTop = ((window.innerHeight - canvasHeight) / 2) + "px";
+
+        // Actual WebGL resolution for Firefox & high-DPI
+        canvas.width = canvasWidth * window.devicePixelRatio;
+        canvas.height = canvasHeight * window.devicePixelRatio;
       }
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/Web.loader.js";
-      var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/Web.data",
-        frameworkUrl: buildUrl + "/Web.framework.js",
-        codeUrl: buildUrl + "/Web.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "CephSoft",
-        productName: "GameDemo",
-        productVersion: "1.0",
-        showBanner: unityShowBanner,
-      };
-
-      // Mobile viewport fix
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-      }
-
-      loadingBar.style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          loadingBar.style.display = "none";
-        }).catch((message) => {
-          alert(message);
-        });
-      };
-      document.body.appendChild(script);
-
-      // === START: Canvas Resize & Aspect Ratio Fix ===
-      (function() {
-        const targetAspect = 16 / 9; // Change to your desired aspect ratio
-
-        function resizeCanvas() {
-          const windowAspect = window.innerWidth / window.innerHeight;
-          let canvasWidth, canvasHeight;
-
-          if (windowAspect > targetAspect) {
-            // Window is wider than target: pillarbox
-            canvasHeight = window.innerHeight;
-            canvasWidth = canvasHeight * targetAspect;
-          } else {
-            // Window is taller than target: letterbox
-            canvasWidth = window.innerWidth;
-            canvasHeight = canvasWidth / targetAspect;
-          }
-
-          // Apply size and center canvas
-          canvas.style.width = canvasWidth + 'px';
-          canvas.style.height = canvasHeight + 'px';
-          canvas.style.marginLeft = ((window.innerWidth - canvasWidth) / 2) + 'px';
-          canvas.style.marginTop = ((window.innerHeight - canvasHeight) / 2) + 'px';
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('orientationchange', resizeCanvas);
-        resizeCanvas();
-      })();
-      // === END: Canvas Resize & Aspect Ratio Fix ===
-    </script>
-  </body>
+      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("orientationchange", resizeCanvas);
+      resizeCanvas();
+    })();
+    // === End Canvas Resize & Letterboxing Fix ===
+  </script>
+</body>
 </html>
