@@ -1,9 +1,9 @@
 const cacheName = "CephSoft-GameDemo-1.0";
 const contentToCache = [
-    "Build/Web.loader.js",
-    "Build/Web.framework.js",
-    "Build/Web.data",
-    "Build/Web.wasm",
+    "Build/Fix.loader.js",
+    "Build/Fix.framework.js",
+    "Build/Fix.data",
+    "Build/Fix.wasm",
     "TemplateData/style.css"
 
 ];
