@@ -48,6 +48,40 @@
   </div>
 
   <script>
+    (function() {
+      const targetAspect = 16 / 9;
+      const canvas = document.getElementById("unity-canvas");
+
+      function resizeCanvas() {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const windowAspect = windowWidth / windowHeight;
+        let canvasWidth, canvasHeight;
+
+        if (windowAspect > targetAspect) {
+          canvasHeight = windowHeight;
+          canvasWidth = canvasHeight * targetAspect;
+        } else {
+          canvasWidth = windowWidth;
+          canvasHeight = canvasWidth / targetAspect;
+        }
+
+        canvas.style.width = canvasWidth + "px";
+        canvas.style.height = canvasHeight + "px";
+        canvas.style.marginLeft = ((windowWidth - canvasWidth) / 2) + "px";
+        canvas.style.marginTop = ((windowHeight - canvasHeight) / 2) + "px";
+
+       
+        canvas.width = Math.round(canvasWidth * window.devicePixelRatio);
+        canvas.height = Math.round(canvasHeight * window.devicePixelRatio);
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("orientationchange", resizeCanvas);
+      resizeCanvas();
+    })();
+    resizeCanvas();
+    
     window.addEventListener("load", function () {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("ServiceWorker.js");
@@ -103,38 +137,7 @@
     loadingBar.style.display = "block";
 
    
-    (function() {
-      const targetAspect = 16 / 9;
-      const canvas = document.getElementById("unity-canvas");
-
-      function resizeCanvas() {
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        const windowAspect = windowWidth / windowHeight;
-        let canvasWidth, canvasHeight;
-
-        if (windowAspect > targetAspect) {
-          canvasHeight = windowHeight;
-          canvasWidth = canvasHeight * targetAspect;
-        } else {
-          canvasWidth = windowWidth;
-          canvasHeight = canvasWidth / targetAspect;
-        }
-
-        canvas.style.width = canvasWidth + "px";
-        canvas.style.height = canvasHeight + "px";
-        canvas.style.marginLeft = ((windowWidth - canvasWidth) / 2) + "px";
-        canvas.style.marginTop = ((windowHeight - canvasHeight) / 2) + "px";
-
-       
-        canvas.width = Math.round(canvasWidth * window.devicePixelRatio);
-        canvas.height = Math.round(canvasHeight * window.devicePixelRatio);
-      }
-
-      window.addEventListener("resize", resizeCanvas);
-      window.addEventListener("orientationchange", resizeCanvas);
-      resizeCanvas();
-    })();
+    
   
     var script = document.createElement("script");
     script.src = loaderUrl;
