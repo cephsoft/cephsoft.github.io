@@ -9,26 +9,29 @@
   <link rel="manifest" href="manifest.webmanifest">
 
   <style>
+    /* Ensure full-screen and black background for letterboxing */
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      background-color: black; /* Black for letterbox/pillarbox bars */
+      background-color: black; /* letterbox/pillarbox color */
       overflow: hidden;
     }
 
     #unity-container {
-      position: relative;
+      position: absolute; /* fill entire viewport */
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      background-color: black; /* Black background */
+      background-color: black; /* ensures black bars behind canvas */
       overflow: hidden;
     }
 
     #unity-canvas {
       display: block;
-      background-color: transparent; /* Let container background show */
+      background-color: transparent; /* canvas shows black container bars */
     }
   </style>
 </head>
@@ -45,21 +48,21 @@
   </div>
 
   <script>
-    // Service worker registration
+    // === Service Worker registration ===
     window.addEventListener("load", function () {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("ServiceWorker.js");
       }
     });
 
-    // Unity DOM elements
+    // === Unity DOM elements ===
     var container = document.querySelector("#unity-container");
     var canvas = document.querySelector("#unity-canvas");
     var loadingBar = document.querySelector("#unity-loading-bar");
     var progressBarFull = document.querySelector("#unity-progress-bar-full");
     var warningBanner = document.querySelector("#unity-warning");
 
-    // Warning/error banner function
+    // === Warning/Error banner function ===
     function unityShowBanner(msg, type) {
       function updateBannerVisibility() {
         warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
@@ -78,7 +81,7 @@
       updateBannerVisibility();
     }
 
-    // Unity loader configuration
+    // === Unity loader config ===
     var buildUrl = "Build";
     var loaderUrl = buildUrl + "/Web.loader.js";
     var config = {
@@ -93,7 +96,7 @@
       showBanner: unityShowBanner,
     };
 
-    // Mobile viewport fix
+    // === Mobile viewport fix ===
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       var meta = document.createElement('meta');
       meta.name = 'viewport';
@@ -120,32 +123,34 @@
 
     // === Canvas Resize & Letterboxing Fix (Cross-Browser) ===
     (function() {
-      const targetAspect = 16 / 9; // Set your target aspect ratio here
+      const targetAspect = 16 / 9; // desired aspect ratio
       const canvas = document.getElementById("unity-canvas");
 
       function resizeCanvas() {
-        const windowAspect = window.innerWidth / window.innerHeight;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const windowAspect = windowWidth / windowHeight;
         let canvasWidth, canvasHeight;
 
         if (windowAspect > targetAspect) {
-          // Pillarbox
-          canvasHeight = window.innerHeight;
+          // window is wider than target: pillarbox
+          canvasHeight = windowHeight;
           canvasWidth = canvasHeight * targetAspect;
         } else {
-          // Letterbox
-          canvasWidth = window.innerWidth;
+          // window is taller than target: letterbox
+          canvasWidth = windowWidth;
           canvasHeight = canvasWidth / targetAspect;
         }
 
         // CSS visual size
         canvas.style.width = canvasWidth + "px";
         canvas.style.height = canvasHeight + "px";
-        canvas.style.marginLeft = ((window.innerWidth - canvasWidth) / 2) + "px";
-        canvas.style.marginTop = ((window.innerHeight - canvasHeight) / 2) + "px";
+        canvas.style.marginLeft = ((windowWidth - canvasWidth) / 2) + "px";
+        canvas.style.marginTop = ((windowHeight - canvasHeight) / 2) + "px";
 
-        // Actual WebGL resolution for Firefox & high-DPI
-        canvas.width = canvasWidth * window.devicePixelRatio;
-        canvas.height = canvasHeight * window.devicePixelRatio;
+        // Actual WebGL resolution (fixes Firefox scaling)
+        canvas.width = Math.round(canvasWidth * window.devicePixelRatio);
+        canvas.height = Math.round(canvasHeight * window.devicePixelRatio);
       }
 
       window.addEventListener("resize", resizeCanvas);
